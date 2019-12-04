@@ -16,12 +16,12 @@ def todoscogemos_draw(agent): # En esta sección, establecemos cómo se represen
         return
     portrayal = {"Shape": "rect", "w": 1, "h":1, "Filled": "true", "Layer": 0}
     
-    if agent.type == 0:
-        portrayal["Color"] = ["#FF0000", "#FF9999"]
-        portrayal["stroke_color"] = "#00FF00"
-    else:
-        portrayal["Color"] = ["#0000FF", "#9999FF"]
-        portrayal["stroke_color"] = "#000000"
+        if agent.gender == 0: # Asignamos un color a hombres y otro a mujeres
+            portrayal["Color"] = ["#FF0000", "#FF9999"]
+            portrayal["stroke_color"] = "#00FF00"
+        else:
+            portrayal["Color"] = ["#0000FF", "#9999FF"]
+            portrayal["stroke_color"] = "#000000"
     return portrayal
 
 couple_element = CoupleElement()
