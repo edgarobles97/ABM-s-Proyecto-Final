@@ -58,9 +58,9 @@ class TodosCogemos(Model):
                 else:
                     gender = 0
                 
-                agent = miAgente((x, y), self, gender, beauty=0.5, wealth = 0.8, desired_beauty=0.2, desired_wealth=0.5)
-                self.grid.place_agent(agent, (x, y))
-                self.schedule.add(agent)
+                    agent = miAgente((x, y), self, gender, beauty=0.5, wealth = 0.8, desired_beauty=0.2, desired_wealth=0.5)
+                    self.grid.place_agent(agent, (x, y))
+                    self.schedule.add(agent)
 
         self.running = True
         self.datacollector.collect(self)
