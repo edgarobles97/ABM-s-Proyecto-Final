@@ -70,7 +70,6 @@ class TodosC(Model):
         self.datacollector.collect(self)
 
     def step(self): # Este step permite que el modelo siga corriendo hasta que todos los agentes tengan pareja
-        self.parejas = 0
         self.schedule.step()
         # Por fines gráficos, recolectamos la información sobre la cantidad de parejas
         self.datacollector.collect(self)
