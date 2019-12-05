@@ -25,14 +25,22 @@ class miAgente(Agent): # Comenzamos definiendo a cada agente
         if len(matches)==1:  # Si encuentra pareja, desaparecen del grid
             self.model.schedule.remove(self)
             self.model.grid.remove_agent(self)
+            if self.gender == 1:
+                self.model.hombres -= 1
+            else:
+                self.model.mujeres -= 1
             self.model.parejas += 1 # Contabilizamos una pareja en la lista para futura recolección
             for m in matches: 
                 self.model.schedule.remove(m)
-                self.model.grid.remove_agent(m)              
+                self.model.grid.remove_agent(m) 
+                if m.gender == 1:
+                    self.model.hombres -= 1
+                else:
+                    self.model.mujeres -= 1
                 
 class TodosC(Model):
     '''
-    Love-match market Model
+    Love-match market Model: 
     
     En este modelo, cada individuo recorre de manera aleatoria el lugar, al encontrarse con un match (agente del sexo opuesto con parámetros de belleza y riqueza coincidentes con lo deseado) desaparece del modelo. 
     El objetivo es observar la distribución de perfiles de belleza y riqueza a lo largo del tiempo hasta ver quienes no logran encontrar pareja. 
@@ -47,21 +55,26 @@ class TodosC(Model):
         self.schedule = RandomActivation(self)
         self.grid = MultiGrid(height, width, torus=False)
             
-        self.parejas = 0 
+        self.parejas = 0
+        self.hombres = 0
+        self.mujeres = 0
         self.datacollector = DataCollector(
         {"parejas": "parejas"},  # Cantidad de parejas 
  
         {"x": lambda a: a.pos[0], "y": lambda a: a.pos[1]})
             
 # En esta sección, etiquetamos a cada agente según su tipo 
+
         for cell in self.grid.coord_iter():
             x = cell[1]
             y = cell[2]
             if self.random.random() < self.density:
                 if self.random.random() < self.HM_pc:
-                    gender = 1
+                    gender = 1 
+                    self.hombres += 1
                 else:
                     gender = 0
+                    self.mujeres += 1
                 agent = miAgente((x, y), self, gender, beauty = random.uniform(0,1), wealth = random.uniform(0,1), desired_beauty = random.uniform(0,1), desired_wealth = random.uniform(0,1))
                 self.grid.place_agent(agent, (x, y))
                 self.schedule.add(agent)
@@ -74,5 +87,5 @@ class TodosC(Model):
         # Por fines gráficos, recolectamos la información sobre la cantidad de parejas
         self.datacollector.collect(self)
 
-        if self.schedule.get_agent_count() == 0 or self.schedule.get_agent_count() == 1:
+        if self.schedule.get_agent_count() == 0 or self.hombres == 0 or self.mujeres == 0: 
             self.running = False
