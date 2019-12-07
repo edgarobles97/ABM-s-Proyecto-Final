@@ -1,18 +1,9 @@
-#!/usr/bin/env python3
-# -*- coding: utf-8 -*-
-"""
-Created on Sat Dec  7 09:14:58 2019
-
-@author: luisgarciaavalos
-"""
-
 import random
 from mesa import Agent, Model
 from mesa.time import RandomActivation
 from mesa.space import MultiGrid
 from mesa.datacollection import DataCollector
 
-from scipy.stats import poisson
 
 class miAgente(Agent): # Comenzamos definiendo a cada agente
     def __init__(self, pos, model, gender, beauty, wealth, desired_beauty, desired_wealth, time_to_critical, sojourn, is_critical):
@@ -52,8 +43,6 @@ class miAgente(Agent): # Comenzamos definiendo a cada agente
                 else:
                     self.model.mujeres -= 1
         
-        unhappy = []
-        
         self.sojourn += 1
         if self.sojourn >= self.time_to_critical:
             self.is_critical = 1
@@ -61,7 +50,7 @@ class miAgente(Agent): # Comenzamos definiendo a cada agente
         if self.is_critical == 1:
             self.model.schedule.remove(self)
             self.model.grid.remove_agent(self)
-            unhappy.append(self)
+            self.model.unhappy += 1
             if self.gender == 1:
                     self.model.hombres -= 1
             else:
@@ -79,7 +68,8 @@ class LoveMatch(Model):
         self.width = width
         self.density = density
         self.HM_pc = HM_pc
-        self.entry_rate = entry_rate
+        
+        self.entry_rate = 5
             
         self.schedule = RandomActivation(self)
         self.grid = MultiGrid(height, width, torus=False)
@@ -87,9 +77,9 @@ class LoveMatch(Model):
         self.parejas = 0
         self.hombres = 0
         self.mujeres = 0
+        self.unhappy = 0
         self.datacollector = DataCollector(
-        {"parejas": "parejas"},  # Cantidad de parejas 
- 
+        {"parejas": "parejas", "unhappy": "unhappy"},
         {"x": lambda a: a.pos[0], "y": lambda a: a.pos[1]})
             
 # En esta sección, etiquetamos a cada agente según su tipo 
@@ -104,35 +94,47 @@ class LoveMatch(Model):
                 else:
                     gender = 0
                     self.mujeres += 1
-                agent = miAgente((x, y), self, gender, beauty = random.gauss(3,5), wealth = random.gauss(2,6), desired_beauty = random.gauss(2,5), desired_wealth = random.gauss(3,3), time_to_critical = random.gauss(20, 5), sojourn = -1, is_critical= 0)
-                self.grid.place_agent(agent, (x, y))
+                agent = miAgente((x, y), self, gender, beauty = random.gauss(3,5),
+                                                         wealth = random.gauss(2,6),
+                                                         desired_beauty = random.gauss(2,5), 
+                                                         desired_wealth = random.gauss(3,3),
+                                                         time_to_critical = random.gauss(20, 5), 
+                                                         sojourn = -1,
+                                                         is_critical= 0)   
                 self.schedule.add(agent)
+                self.grid.place_agent(agent, (x,y))
         
         self.running = True
         self.datacollector.collect(self)
+        
+                
 
+    def update(self):
+        if self.schedule.get_agent_count()<self.max_agents:
+            for i in range(self.entry_rate):
+                x = self.random.randrange(self.grid.width)
+                y = self.random.randrange(self.grid.height)
+                if self.random.random() < self.HM_pc:
+                    gender = 1 
+                    self.hombres += 1
+                else:
+                    gender = 0
+                    self.mujeres += 1
+
+                agent = miAgente(i, self,gender, 
+                                 beauty = random.gauss(4,2),
+                                 wealth = random.gauss(4,3), 
+                                 desired_beauty = random.gauss(4,3),
+                                 desired_wealth = random.gauss(3,2),
+                                 time_to_critical = random.gauss(20,5),
+                                 sojourn = -1,
+                                 is_critical = 0)
+                self.schedule.add(agent)
+                self.grid.place_agent(agent, (x,y))
     def step(self): # Este step permite que el modelo siga corriendo hasta que todos los agentes tengan pareja
-        self.schedule.step()
+        self.schedule.step()    
         # Por fines gráficos, recolectamos la información sobre la cantidad de parejas
         self.datacollector.collect(self)
 
         if self.schedule.get_agent_count() == 0: 
             self.running = False
-    
-    def update(self, entry_fct= lambda x: poisson.rvs(x)):
-        if self.schedule.get_agent_count()<self.max_agents:
-            new_agents = entry_fct(self.entry_rate) 
-            for cell in self.grid.coord_iter():
-                x = cell[1]
-                y = cell[2]
-                if self.random.random() < self.density:
-                    if self.random.random() < self.HM_pc:
-                        gender = 1 
-                        self.hombres += 1
-                    else:
-                        gender = 0
-                        self.mujeres += 1
-            for new_agent in new_agents:
-                new_agent = miAgente((x, y), self, gender, beauty = random.gauss(0,1), wealth = random.gauss(0,1), desired_beauty = random.gauss(0,1), desired_wealth = random.gauss(0,1))
-                new_agent.grid.place_agent(new_agent, (x,y))
-        
