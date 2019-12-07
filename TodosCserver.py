@@ -9,7 +9,7 @@ class CoupleElement(TextElement): # Comenzamos con la parte visual del modelo
         pass
 
     def render(self, model):
-        return "parejas: " + str(model.parejas) # Debajo del grid observamos la cuenta total de agentes felices
+        return "matches -- left: " + str(model.parejas) + ' -- ' +str(model.unhappy) # Debajo del grid observamos la cuenta total de agentes felices
 
 def todoscogemos_draw(agent): # En esta sección, establecemos cómo se representará a cada agente en el grid
     if agent is None:
@@ -25,16 +25,18 @@ def todoscogemos_draw(agent): # En esta sección, establecemos cómo se represen
     return portrayal
 
 couple_element = CoupleElement()
-canvas_element = CanvasGrid(todoscogemos_draw, 50, 50, 500, 500)
+canvas_element = CanvasGrid(todoscogemos_draw, 25, 30, 500, 500)
+
 couples_chart = ChartModule([{"Label": "parejas", "Color": "Black"}])
+unhappy_chart = ChartModule([{"Label": "unhappy", "Color":"Red"}], data_collector_name='datacollector')
 
 model_params = {
-    "height": 50,
-    "width": 50,
+    "height": 25,
+    "width": 30,
     "density": UserSettableParameter("slider", "Densidad poblacional", 0.5, 0.1, 1.0, 0.1),
     "HM_pc": UserSettableParameter("slider", "Fracción de hombres vs mujeres", 0.5, 0.00, 1.0, 0.1),
     }
 
 server = ModularServer(TodosC,
-                       [canvas_element, couple_element, couples_chart],
+                       [canvas_element, couple_element, couples_chart, unhappy_chart],
                        "Proyecto Final", model_params)
