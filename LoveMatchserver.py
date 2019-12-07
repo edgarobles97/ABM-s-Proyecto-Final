@@ -32,6 +32,8 @@ def LoveMatch_draw(agent): # En esta sección, establecemos cómo se representar
 couple_element = CoupleElement()
 canvas_element = CanvasGrid(LoveMatch_draw, 50, 50, 500, 500)
 couples_chart = ChartModule([{"Label": "parejas", "Color": "Black"}])
+unhappy_chart = ChartModule([{"Label": "unhappy", "Color":"Red"}])
+
 
 model_params = {
     "height": 50,
@@ -42,5 +44,5 @@ model_params = {
 }
 
 server = ModularServer(LoveMatch,
-                       [canvas_element, couple_element, couples_chart],
+                       [canvas_element, couple_element, couples_chart, unhappy_chart],
                        "Proyecto Final", model_params)
