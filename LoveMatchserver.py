@@ -1,3 +1,7 @@
+#### Server LoveMatch ######
+#### ABM's - Proyecto Final #####
+#### Daniel Juarez Bautista, Edgar Robles Díaz, Luis Eduardo García Ávalos #####
+
 from mesa.visualization.ModularVisualization import ModularServer
 from mesa.visualization.modules import CanvasGrid, ChartModule, TextElement
 from mesa.visualization.UserParam import UserSettableParameter
@@ -39,8 +43,7 @@ model_params = {
     "height": 50,
     "width": 50,
     "density": UserSettableParameter("slider", "Densidad poblacional", 0.5, 0.1, 1.0, 0.1),
-    "HM_pc": UserSettableParameter("slider", "Fracción de hombres vs mujeres", 0.5, 0.00, 1.0, 0.1),
-    "entry_rate": UserSettableParameter("slider", "Ticks de entrada de nuevo grupo", 4, 0, 50, 1),
+    "HM_pc": UserSettableParameter("slider", "Fracción de hombres vs mujeres", 0.5, 0.00, 1.0, 0.1)
 }
 
 server = ModularServer(LoveMatch,

@@ -1,3 +1,7 @@
+#### Modelo LoveMatch ######
+#### ABM's - Proyecto Final #####
+#### Daniel Juarez Bautista, Ehgar Robles Díaz, Luis Eduardo García Ávalos #####
+
 import random
 from mesa import Agent, Model
 from mesa.time import RandomActivation
@@ -6,6 +10,10 @@ from mesa.datacollection import DataCollector
 import numpy as np
 
 class miAgente(Agent): # Comenzamos definiendo a cada agente
+                       # sojourn indica  el tiempo que los agentes pasan sin tener pareja
+                       # time to critical indica el número de ticks que pasan para que un agente salga del modelo
+                       # is_critical indica con 1 si el agente se salió del modelo por no tener matches
+                       # myid representa un id individual del agente.
     def __init__(self, pos, model, gender, beauty, wealth, desired_beauty, desired_wealth, time_to_critical, sojourn, is_critical, myid):
         super().__init__(pos, model) 
         self.pos = pos
@@ -19,6 +27,12 @@ class miAgente(Agent): # Comenzamos definiendo a cada agente
         self.sojourn = -1
         self.is_critical = 0
         self.myid = myid
+        
+        
+        # El agente se mueve en iun random walk, escoge al azar a donde ir y se mueve a la celda contigua
+        # una vez en la celda, observa a su vecino con el cual comparte celda.
+        # si cumplen sus expectativas mutuas, es decir, que la belleza/riqueza del agente es mayor que la belleza/riqueza esperada del otro agente.
+        # Si esta condición se cumple para ambos agentes, entonces se realiza un match, los agentes salen del modelo y se actualiza el número de parejas y el de hombres/mujeres
         
     def step(self): # Modelamos el movimiento
         vecindad = self.model.grid.get_neighborhood(self.pos,moore=True,include_center=False)
@@ -37,6 +51,7 @@ class miAgente(Agent): # Comenzamos definiendo a cada agente
                 self.model.mujeres -= 1
             self.model.parejas += 1
                    # Contabilizamos una pareja en la lista para futura recolección
+                   # También quitamos al otro agente emparejado tanto del grid como del modelo
             for m in matches: 
                 self.model.schedule.remove(m)
                 self.model.grid.remove_agent(m) 
@@ -45,7 +60,9 @@ class miAgente(Agent): # Comenzamos definiendo a cada agente
                     self.model.hombres -= 1
                 else:
                     self.model.mujeres -= 1
-        
+        # Si no encuentras pareja en cierto tick, entonces se agrega una unidad a sojourn por step
+        # Si el nivel de sojourn alcanza el nivel de tiempo crítico por agente, entonces este sale del modelo.
+        # Una vez que sale, se agrega uno al contador de unhappy, es decir, aquellos que salieron sin match.
         self.sojourn += 1
         if self.sojourn >= self.time_to_critical:
             self.is_critical = 1
@@ -54,6 +71,7 @@ class miAgente(Agent): # Comenzamos definiendo a cada agente
             self.model.schedule.remove(self)
             self.model.grid.remove_agent(self)
             self.model.unhappy += 1
+            # Identifica el género
             if self.gender == 1:
                     self.model.hombres -= 1
             else:
@@ -96,21 +114,24 @@ class LoveMatch(Model):
                 else:
                     gender = 0
                     self.mujeres += 1
-                    
+                #Creamos a cada agente y asignamos su ID, cad vez que se crea un agente, se agrega uno al contador de ID's    
+                #Nota: La distribución de las características las modelamos con una distribución log-normal. Esto nos permite tener solo valores positivos y este ranking de belleza/riqueza se concentra de 0 a 1
                 self.idcounter +=1
-                agent = miAgente((x, y), self, gender, beauty = np.random.lognormal(0.5, 0.15),
-                                                         wealth = np.random.lognormal(0.5, 0.15),
-                                                         desired_beauty = np.random.lognormal(0.5,0.25), 
-                                                         desired_wealth = np.random.lognormal(0.5,0.25),
+                agent = miAgente((x, y), self, gender, beauty = np.random.lognormal(0.5, 0.30),
+                                                         wealth = np.random.lognormal(0.5, 0.30),
+                                                         desired_beauty = np.random.lognormal(0.5,0.3), 
+                                                         desired_wealth = np.random.lognormal(0.5,0.3),
                                                          time_to_critical = random.randint(10, 30), 
                                                          sojourn = -1,
                                                          is_critical= 0,
                                                          myid=self.idcounter
                                                          )   
+                #coloca a los agentes en el modelo
                 self.schedule.add(agent)
                 self.grid.place_agent(agent, (x,y))
-        
+        #Corre el modelo
         self.running = True
+        #Colecciona los datos relevantes para el agente y para el modelo
         self.datacollector = DataCollector(
                 model_reporters={'density':'density','parejas':'parejas','unhappy':'unhappy', 'hombres':'hombres','mujeres':'mujeres'},
                 agent_reporters={'myid':'myid','wealth':'wealth', 'gender':'gender', 'beauty':'beauty',
@@ -149,8 +170,12 @@ class LoveMatch(Model):
         # Por fines gráficos, recolectamos la información sobre la cantidad de parejas
         self.datacollector.collect(self)
         
-        self.datacollector.get_agent_vars_dataframe().to_csv("prueba1.csv")
-        self.datacollector.get_model_vars_dataframe().to_csv("prueba2.csv")
+        
+        ### Guarda la información relevante dentro de tablas en csv's.
+        self.datacollector.get_agent_vars_dataframe().to_csv("test_me_a.csv")
+        self.datacollector.get_model_vars_dataframe().to_csv("test_me_m.csv")
 
+
+        ### Finalmente, el modelo se detiene si el número de agentes es cero
         if self.schedule.get_agent_count() == 0: 
             self.running = False
