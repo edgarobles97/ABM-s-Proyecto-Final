@@ -1,4 +1,5 @@
-# Love Match (Matching Markets) - Proyecto final Modelos Basados en Agentes
+# Love Match (Matching Markets) - Proyecto final Modelos Basados en Agentes 
+## CIDE - 10/12/19
 
 
 ### Luis Eduardo García Ávalos
@@ -32,6 +33,8 @@
   - LoveMatchserver.py: En este script está toda la información relevante al ajuste de la visualización en un servidor local.
   
   - LoveMatchRun.py: Este script ejecuta el modelo y carga la variable server encontrada en el archivo anterior.
+  
+  - ODD y paper académico presentando el modelo.
   
   - Data Analysis: Subcarpeta con tres Jupyter Notebooks que contienen información estadística para tres versiones distintas del modelo.
   
